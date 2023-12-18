@@ -69,7 +69,7 @@ const saveToCache = () => {
   for (let item of formList.value) {
     console.log('item---item', item.name, formInline.name)
     if (item.name === formInline.name) {
-      ElMessage('该别名已存在')
+      ElMessage('该别名已存在');
       return;
     }
   }
