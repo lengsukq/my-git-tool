@@ -59,7 +59,9 @@ function createWindow() {
     let formInline = JSON.parse(arg)
     // 在这里可以执行相应的操作，并向渲染进程发送回复
     // 执行Shell命令
-    exec(`cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`, (error, stdout, stderr) => {
+    //stdout（标准输出流） 用于输出正常的程序输出。
+    // stderr（标准错误流） 用于输出错误信息和警告，通常用于指示程序执行时的问题。
+    exec(`git config --global core.autocrlf true && cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`, (error, stdout, stderr) => {
       if (error) {
         event.reply('command-result', { error: error.message });
         return;
