@@ -3,6 +3,8 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -61,7 +63,7 @@ function createWindow() {
     // 执行Shell命令
     //stdout（标准输出流） 用于输出正常的程序输出。
     // stderr（标准错误流） 用于输出错误信息和警告，通常用于指示程序执行时的问题。
-    exec(`git config --global core.autocrlf true && cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`, (error, stdout, stderr) => {
+    exec(`cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`, (error, stdout, stderr) => {
       if (error) {
         event.reply('command-result', { error: error.message });
         return;
@@ -73,6 +75,35 @@ function createWindow() {
       event.reply('command-result', { result: stdout });
     });
     event.reply('reply-from-main', arg);
+  });
+
+  // 保存对象到本地
+  function saveObjectToCache(obj) {
+    const filePath = path.join(app.getPath('userData'), 'cache.json');
+    fs.writeFileSync(filePath, obj);
+  }
+// 监听来自渲染进程的消息，保存对象到本地
+  ipcMain.on('save-object', (event, obj) => {
+    saveObjectToCache(obj);
+  });
+
+
+// 从本地读取对象
+  function getObjectFromCache() {
+    const filePath = path.join(app.getPath('userData'), 'cache.json');
+    try {
+      const data = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(data);
+    } catch (err) {
+      console.error('Error reading file:', err);
+      return null;
+    }
+  }
+
+// 监听来自渲染进程的请求，发送本地对象到渲染进程
+  ipcMain.on('get-object', (event) => {
+    const obj = getObjectFromCache();
+    event.reply('send-object', obj);
   });
 }
 
