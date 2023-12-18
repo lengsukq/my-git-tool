@@ -26,7 +26,7 @@
     </el-form-item>
   </el-form>
   <el-radio-group v-model="radio" class="ml-4">
-    <el-radio :label="item.name" size="large" v-for="item in formList" @click="setInfo">{{item.name}}</el-radio>
+    <el-radio :label="item.name" size="large" v-for="(item,index) in formList" @click="setInfo(index)">{{item.name}}</el-radio>
   </el-radio-group>
 </template>
 
@@ -64,8 +64,8 @@ const gitCommit = () => {
 const saveToCache= ()=>{
   // 向主进程发送保存对象的消息
   for (let item of formList.value){
-    console.log('item---item',item.value)
-    if (item.value === radio.value){
+    console.log('item---item',item.name,formInline.name)
+    if (item.name === formInline.name){
       ElMessage('该别名已存在')
       return;
     }
@@ -87,13 +87,9 @@ const getCache = ()=>{
   // 向主进程发送获取对象的消息
   ipcRenderer.send('get-object');
 }
-const setInfo =()=>{
-  for (let item of formList.value){
-    if (item.name === radio.value){
-      Object.assign(formInline, item);
-      break;
-    }
-  }
+const setInfo =(index)=>{
+  console.log('formList.value[index]',index,formList.value[index])
+      Object.assign(formInline, formList.value[index]);
 }
 onMounted(()=>{
   getCache();
