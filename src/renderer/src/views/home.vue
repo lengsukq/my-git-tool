@@ -1,13 +1,13 @@
 <template>
   <el-form :inline="true" :model="formInline" class="demo-form-inline">
     <el-form-item label="别名">
-      <el-input v-model="formInline.name" placeholder="" clearable />
+      <el-input v-model="formInline.name" placeholder="" clearable/>
     </el-form-item>
     <el-form-item label="本地目录">
-      <el-input v-model="formInline.file" placeholder="" clearable />
+      <el-input v-model="formInline.file" placeholder="" clearable/>
     </el-form-item>
     <el-form-item label="提交描述">
-      <el-input v-model="formInline.text" placeholder="" clearable />
+      <el-input v-model="formInline.text" placeholder="" clearable/>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="gitPull">更新</el-button>
@@ -26,16 +26,19 @@
     </el-form-item>
   </el-form>
   <el-radio-group v-model="radio" class="ml-4">
-    <el-radio :label="item.name" size="large" v-for="(item,index) in formList" @click="setInfo(index)">{{item.name}}</el-radio>
+    <el-radio :label="item.name" size="large" v-for="(item,index) in formList" @click="setInfo(index)">{{ item.name }}
+    </el-radio>
   </el-radio-group>
 </template>
 
 <script lang="ts" setup>
-import { reactive,ref,onMounted } from 'vue';
-const { ipcRenderer } = require('electron');
-import { ElMessage } from 'element-plus'
+import {reactive, ref, onMounted} from 'vue';
+
+const {ipcRenderer} = require('electron');
+import {ElMessage} from 'element-plus'
+
 const formInline = reactive({
-  name:'',
+  name: '',
   file: '',
   text: '',
 })
@@ -45,7 +48,7 @@ const formList = ref([])
 ipcRenderer.on('command-result', (event, arg) => {
   console.log('监听来自主进程的回复', arg);
   // 在这里可以处理来自主进程的回复
-  ElMessage(arg.result?arg.result:arg.error)
+  ElMessage(arg.result ? arg.result : arg.error)
 });
 // 监听主进程的回复
 ipcRenderer.on('send-object', (event, obj) => {
@@ -61,11 +64,11 @@ const gitCommit = () => {
 // 向主进程发送消息
   ipcRenderer.send('gitCommit', JSON.stringify(formInline));
 }
-const saveToCache= ()=>{
+const saveToCache = () => {
   // 向主进程发送保存对象的消息
-  for (let item of formList.value){
-    console.log('item---item',item.name,formInline.name)
-    if (item.name === formInline.name){
+  for (let item of formList.value) {
+    console.log('item---item', item.name, formInline.name)
+    if (item.name === formInline.name) {
       ElMessage('该别名已存在')
       return;
     }
@@ -74,24 +77,24 @@ const saveToCache= ()=>{
 
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
 }
-const restCache = ()=>{
+const restCache = () => {
   formList.value = [];
   ElMessage.success('已清空缓存');
   ipcRenderer.send('save-object', JSON.stringify([]));
 
 }
-const deepClone = (obj) =>{
+const deepClone = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 }
-const getCache = ()=>{
+const getCache = () => {
   // 向主进程发送获取对象的消息
   ipcRenderer.send('get-object');
 }
-const setInfo =(index)=>{
-  console.log('formList.value[index]',index,formList.value[index])
-      Object.assign(formInline, formList.value[index]);
+const setInfo = (index) => {
+  console.log('formList.value[index]', index, formList.value[index])
+  Object.assign(formInline, formList.value[index]);
 }
-onMounted(()=>{
+onMounted(() => {
   getCache();
 })
 </script>
