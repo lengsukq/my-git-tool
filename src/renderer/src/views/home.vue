@@ -17,7 +17,8 @@
 
 <script lang="ts" setup>
 import { reactive } from 'vue';
-const { ipcRenderer } = require('electron')
+const { ipcRenderer } = require('electron');
+import { ElMessage } from 'element-plus'
 const formInline = reactive({
   file: '',
   text: '',
@@ -26,6 +27,7 @@ const formInline = reactive({
 ipcRenderer.on('command-result', (event, arg) => {
   console.log('监听来自主进程的回复', arg);
   // 在这里可以处理来自主进程的回复
+  ElMessage(arg.result?arg.result:arg.error)
 });
 const gitPull = () => {
 // 向主进程发送消息
