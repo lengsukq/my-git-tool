@@ -34,18 +34,21 @@
       <el-button type="" @click="getTheUrl">获取仓库地址</el-button>
     </el-form-item>
   </el-form>
-  <el-check-tag
-    v-for="(tag,index) in formList"
-    :key="tag.name"
-    class="mx-1"
-    :checked="checkedIndex===index"
-    @click="setInfo(index)"
-    closable
-    :disable-transitions="false"
-    @close="handleClose(tag)"
-  >
-    {{ tag.name }}
-  </el-check-tag>
+  <div class="flex flex-wrap gap-2 my-2">
+    <el-tag
+      v-for="(tag,index) in formList"
+      :key="tag.name"
+      class="mx-1"
+      :class="{'tagChecked':checkedIndex===index}"
+      @click="setInfo(index)"
+      closable
+      :disable-transitions="false"
+      @close="handleClose(tag)"
+    >
+      {{ tag.name }}
+    </el-tag>
+  </div>
+
 </template>
 
 <script lang="ts" setup>
@@ -75,7 +78,8 @@ ipcRenderer.on('send-object', (event, obj) => {
   formList.value = obj;
 });
 const handleClose = (tag) => {
-  formList.value.splice(formList.value.indexOf(tag), 1)
+  formList.value.splice(formList.value.indexOf(tag), 1);
+  ipcRenderer.send('save-object', JSON.stringify(formList.value));
 }
 const gitPull = () => {
 // 向主进程发送消息
@@ -97,15 +101,22 @@ const getTheUrl = () => {
 const saveToCache = () => {
   // 向主进程发送保存对象的消息
   for (let item of formList.value) {
-    console.log('item---item', item.name, formInline.name)
+    // console.log('item---item', item.name, formInline.name)
     if (item.name === formInline.name) {
-      ElMessage('该别名已存在');
-      return;
+      if (item.text !== formInline.text || item.file !==formInline.file){
+        let pushIndex = formList.value.indexOf(item);
+        formList.value[pushIndex] = formInline;
+        ElMessage.success('更新缓存成功');
+      }else{
+        ElMessage.error('该数据已存在');
+      }
+      return false;
     }
   }
   formList.value.push(deepClone(formInline));
 
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
+
 }
 const restCache = () => {
   formList.value = [];
@@ -133,5 +144,13 @@ onMounted(() => {
 <style>
 .demo-form-inline .el-input {
   --el-input-width: 220px;
+}
+.el-tag.is-closable{
+  margin-right: 5px;
+}
+.tagChecked{
+  background: #79bbff;
+  color: white;
+  box-shadow: 0 0 10px 5px white; /* 添加白色阴影 */
 }
 </style>
