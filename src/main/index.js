@@ -2,7 +2,7 @@ import {app, BrowserWindow, ipcMain, shell} from 'electron'
 import {join} from 'path'
 import {electronApp, is, optimizer} from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import {getLocalStorage, gitCommit, gitPull, saveObjectToCache} from "./handlers/ipcMain";
+import {getLocalStorage, getTheUrl, gitCommit, gitPull, saveObjectToCache, setNewUrl} from "./handlers/ipcMain";
 // import {gitCommit, gitPull} from "./handlers/ipcMain";
 const {exec} = require('child_process');
 const fs = require('fs');
@@ -50,6 +50,8 @@ app.whenReady().then(() => {
   gitCommit();
   getLocalStorage();
   saveObjectToCache();
+  setNewUrl();
+  getTheUrl();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

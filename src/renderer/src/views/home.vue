@@ -1,6 +1,6 @@
 <template>
   <el-form :inline="true" :model="formInline" class="demo-form-inline">
-    <el-form-item label="别名">
+    <el-form-item label="项目别名">
       <el-input v-model="formInline.name" placeholder="" clearable/>
     </el-form-item>
     <el-form-item label="本地目录">
@@ -9,20 +9,29 @@
     <el-form-item label="提交描述">
       <el-input v-model="formInline.text" placeholder="" clearable/>
     </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="gitPull">更新</el-button>
+    <el-form-item label="仓库地址">
+      <el-input v-model="formInline.url" placeholder="" clearable/>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="gitCommit">提交</el-button>
+      <el-button type="primary" @click="gitPull">更新代码</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="saveToCache">保存</el-button>
+      <el-button type="primary" @click="gitCommit">提交代码</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="" @click="getCache">本地</el-button>
+      <el-button type="primary" @click="saveToCache">存到缓存</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="" @click="restCache">清空</el-button>
+      <el-button type="" @click="getCache">获取缓存</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="" @click="restCache">清空缓存</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="" @click="setNewUrl">更新仓库地址</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="" @click="getTheUrl">获取仓库地址</el-button>
     </el-form-item>
   </el-form>
   <el-radio-group v-model="radio" class="ml-4">
@@ -41,6 +50,7 @@ const formInline = reactive({
   name: '',
   file: '',
   text: '',
+  url:'',
 })
 const radio = ref('')
 const formList = ref([])
@@ -52,7 +62,7 @@ ipcRenderer.on('command-result', (event, arg) => {
 });
 // 监听主进程的回复
 ipcRenderer.on('send-object', (event, obj) => {
-  console.log('Received object from main process:', obj);
+  console.log('监听主进程的回复:', obj);
   // 在这里处理接收到的对象数据
   formList.value = obj;
 });
@@ -63,6 +73,14 @@ const gitPull = () => {
 const gitCommit = () => {
 // 向主进程发送消息
   ipcRenderer.send('gitCommit', JSON.stringify(formInline));
+}
+const setNewUrl = () => {
+// 向主进程发送消息
+  ipcRenderer.send('setNewUrl', JSON.stringify(formInline));
+}
+const getTheUrl = () => {
+// 向主进程发送消息
+  ipcRenderer.send('getTheUrl', JSON.stringify(formInline));
 }
 const saveToCache = () => {
   // 向主进程发送保存对象的消息
