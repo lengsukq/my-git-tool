@@ -101,12 +101,13 @@ const getTheUrl = () => {
 const saveToCache = () => {
   // 向主进程发送保存对象的消息
   for (let item of formList.value) {
-    // console.log('item---item', item.name, formInline.name)
     if (item.name === formInline.name) {
       if (item.text !== formInline.text || item.file !==formInline.file){
         let pushIndex = formList.value.indexOf(item);
         formList.value[pushIndex] = formInline;
+        ipcRenderer.send('save-object', JSON.stringify(formList.value));
         ElMessage.success('更新缓存成功');
+        getCache();
       }else{
         ElMessage.error('该数据已存在');
       }
@@ -116,7 +117,7 @@ const saveToCache = () => {
   formList.value.push(deepClone(formInline));
 
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
-
+  getCache();
 }
 const restCache = () => {
   formList.value = [];
@@ -134,7 +135,10 @@ const getCache = () => {
 const setInfo = (index) => {
   checkedIndex.value = index;
   console.log('formList.value[index]', index, formList.value[index])
-  Object.assign(formInline, formList.value[index]);
+  // Object.assign(formInline, formList.value[index]);
+  for(let key in formList.value[index]){
+    formInline[key] = formList.value[index][key];
+  }
 }
 onMounted(() => {
   getCache();
