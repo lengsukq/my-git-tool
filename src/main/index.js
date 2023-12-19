@@ -31,7 +31,7 @@ function createWindow() {
     shell.openExternal(details.url)
     return {action: 'deny'}
   })
-
+  console.log('is.dev && process.env[\'ELECTRON_RENDERER_URL\']----',is.dev && process.env['ELECTRON_RENDERER_URL'])
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

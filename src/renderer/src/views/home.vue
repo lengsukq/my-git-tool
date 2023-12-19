@@ -34,23 +34,31 @@
       <el-button type="" @click="getTheUrl">获取仓库地址</el-button>
     </el-form-item>
   </el-form>
-  <el-radio-group v-model="radio" class="ml-4">
-    <el-radio :label="item.name" size="large" v-for="(item,index) in formList" @click="setInfo(index)">{{ item.name }}
-    </el-radio>
-  </el-radio-group>
+  <el-check-tag
+    v-for="(tag,index) in formList"
+    :key="tag.name"
+    class="mx-1"
+    :checked="checkedIndex===index"
+    @click="setInfo(index)"
+    closable
+    :disable-transitions="false"
+    @close="handleClose(tag)"
+  >
+    {{ tag.name }}
+  </el-check-tag>
 </template>
 
 <script lang="ts" setup>
-import {reactive, ref, onMounted} from 'vue';
-
-const {ipcRenderer} = require('electron');
+import {onMounted, reactive, ref} from 'vue';
 import {ElMessage} from 'element-plus'
 
+const {ipcRenderer} = require('electron');
+const checkedIndex = ref(null)
 const formInline = reactive({
   name: '',
   file: '',
   text: '',
-  url:'',
+  url: '',
 })
 const radio = ref('')
 const formList = ref([])
@@ -66,11 +74,15 @@ ipcRenderer.on('send-object', (event, obj) => {
   // 在这里处理接收到的对象数据
   formList.value = obj;
 });
+const handleClose = (tag) => {
+  formList.value.splice(formList.value.indexOf(tag), 1)
+}
 const gitPull = () => {
 // 向主进程发送消息
   ipcRenderer.send('gitPull', JSON.stringify(formInline));
 }
 const gitCommit = () => {
+  // saveToCache();
 // 向主进程发送消息
   ipcRenderer.send('gitCommit', JSON.stringify(formInline));
 }
@@ -109,6 +121,7 @@ const getCache = () => {
   ipcRenderer.send('get-object');
 }
 const setInfo = (index) => {
+  checkedIndex.value = index;
   console.log('formList.value[index]', index, formList.value[index])
   Object.assign(formInline, formList.value[index]);
 }
