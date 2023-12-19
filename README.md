@@ -1,4 +1,4 @@
-# my-app
+# my-git-tool
 
 An Electron application with Vue
 
