@@ -1,10 +1,13 @@
-import { app, shell, BrowserWindow,ipcMain  } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import {app, BrowserWindow, ipcMain, shell} from 'electron'
+import {join} from 'path'
+import {electronApp, is, optimizer} from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-const { exec } = require('child_process');
+import {getLocalStorage, gitCommit, gitPull, saveObjectToCache} from "./handlers/ipcMain";
+// import {gitCommit, gitPull} from "./handlers/ipcMain";
+const {exec} = require('child_process');
 const fs = require('fs');
 const path = require('path');
+
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -12,7 +15,7 @@ function createWindow() {
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'linux' ? {icon} : {}),
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
@@ -20,14 +23,13 @@ function createWindow() {
       sandbox: false
     }
   })
-
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
-    return { action: 'deny' }
+    return {action: 'deny'}
   })
 
   // HMR for renderer base on electron-vite cli.
@@ -37,80 +39,17 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  // 监听来自渲染进程的消息
-  ipcMain.on('gitPull', (event, arg) => {
-    console.log('Received message from renderer:', JSON.parse(arg));
-    let formInline = JSON.parse(arg)
-    // 在这里可以执行相应的操作，并向渲染进程发送回复
-    // 执行Shell命令
-    exec(`cd ${formInline.file} && git pull`, (error, stdout, stderr) => {
-      if (error) {
-        event.reply('command-result', { error: error.message });
-        return;
-      }
-      if (stderr) {
-        event.reply('command-result', { error: stderr });
-        return;
-      }
-      event.reply('command-result', { result: stdout });
-    });
-    event.reply('reply-from-main', arg);
-  });
-  ipcMain.on('gitCommit', (event, arg) => {
-    console.log('gitCommit---', JSON.parse(arg));
-    let formInline = JSON.parse(arg)
-    // 在这里可以执行相应的操作，并向渲染进程发送回复
-    // 执行Shell命令
-    //stdout（标准输出流） 用于输出正常的程序输出。
-    // stderr（标准错误流） 用于输出错误信息和警告，通常用于指示程序执行时的问题。
-    exec(`cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`, (error, stdout, stderr) => {
-      if (error) {
-        event.reply('command-result', { error: error.message });
-        return;
-      }
-      if (stderr) {
-        event.reply('command-result', { error: stderr });
-        return;
-      }
-      event.reply('command-result', { result: stdout });
-    });
-    event.reply('reply-from-main', arg);
-  });
-
-  // 保存对象到本地
-  function saveObjectToCache(obj) {
-    const filePath = path.join(app.getPath('userData'), 'cache.json');
-    fs.writeFileSync(filePath, obj);
-  }
-// 监听来自渲染进程的消息，保存对象到本地
-  ipcMain.on('save-object', (event, obj) => {
-    saveObjectToCache(obj);
-  });
-
-
-// 从本地读取对象
-  function getObjectFromCache() {
-    const filePath = path.join(app.getPath('userData'), 'cache.json');
-    try {
-      const data = fs.readFileSync(filePath, 'utf-8');
-      return JSON.parse(data);
-    } catch (err) {
-      console.error('Error reading file:', err);
-      return null;
-    }
-  }
-
-// 监听来自渲染进程的请求，发送本地对象到渲染进程
-  ipcMain.on('get-object', (event) => {
-    const obj = getObjectFromCache();
-    event.reply('send-object', obj);
-  });
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+// 注册 IPC 监听器
+  gitPull();
+  gitCommit();
+  getLocalStorage();
+  saveObjectToCache();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

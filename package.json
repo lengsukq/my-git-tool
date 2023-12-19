@@ -18,6 +18,7 @@
   },
   "build": {
     "productName": "myGitTool",
+    "appId": "com.leng.myGitTool",
     "nsis": {
       "oneClick": false,
       "perMachine": true,
