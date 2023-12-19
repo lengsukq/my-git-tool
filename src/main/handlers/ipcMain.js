@@ -106,7 +106,6 @@ export function setNewUrl() {
 }
 // 修改远程地址
 export function getTheUrl() {
-
   // 监听来自渲染进程的消息
   ipcMain.on('getTheUrl', (event, arg) => {
     let formInline = JSON.parse(arg)

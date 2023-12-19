@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: my-app
+appId: com.leng.myGitTool
+productName: my-git-tool
 directories:
   buildResources: build
 files:
