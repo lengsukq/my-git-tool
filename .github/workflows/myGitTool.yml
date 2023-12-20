@@ -15,7 +15,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           name: dist
           path: dist
@@ -27,7 +27,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           name: dist
           path: dist
