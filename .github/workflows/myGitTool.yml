@@ -25,6 +25,5 @@ jobs:
         with:
           tag_name: v1.0.0  # 你的版本号
           release_name: Release v1.0.0
-          body: Release description goes here
-          draft: false
-          prerelease: false
+          asset_name: myGitTool.exe
+          asset_content_type: myGitTool/exe
