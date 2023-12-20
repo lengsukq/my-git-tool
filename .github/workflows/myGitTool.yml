@@ -4,36 +4,23 @@ on:
     branches:
       - main
 jobs:
-  build:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: yarn install
-      - name: Build
-        run: yarn build:win
-      - name: Upload
-        uses: actions/upload-artifact@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          name: dist
-          path: dist
   release:
-    needs: build
-    runs-on: windows-latest
+    name: build and release Electron app
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
     steps:
-      - uses: actions/checkout@v2
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
+      - name: Check out git repository
+        uses: actions/checkout@v3.0.0
+ 
+      - name: Install Node.js
+        uses: actions/setup-node@v3.0.0
+        with: node-version: '16'
+ 
+     - name: Release for Windows
+       if: matrix.os == 'windows-latest'
+       run: yarn release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          name: dist
-          path: dist
-      - name: Create release
-        uses: actions/create-release@v2
-        with:
-          tag_name: v1.0.0
-          release_name: v1.0.0
-          artifacts: dist/*
+         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
