@@ -14,8 +14,8 @@ jobs:
 
       - name: Install dependencies and build
         run: |
-          npm install  # 或者其他依赖安装命令
-          npm run build:win # 或者其他编译命令
+          yarn install  # 或者其他依赖安装命令
+          yarn build:win # 或者其他编译命令
 
       - name: Create Release
         id: create_release
@@ -28,4 +28,3 @@ jobs:
           body: Release description goes here
           draft: false
           prerelease: false
-          path: dist/*exe
