@@ -1,31 +1,35 @@
-name: myGitTool
-
+name: Electron Build and Release
 on:
   push:
     branches:
       - main
-
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install dependencies and build
-        run: |
-          yarn install  # 或者其他依赖安装命令
-          yarn build:win # 或者其他编译命令
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: yarn install
+      - name: Build
+        run: yarn build:win
+      - name: Upload
+        uses: actions/upload-artifact@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: Release description goes here
-          asset_path: ${{ github.workspace }}/*.exe
-          draft: false
-          prerelease: false
+          name: dist
+          path: dist
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+      - name: Create release
+        uses: actions/create-release@v2
+        with:
+          tag_name: v1.0.0
+          release_name: v1.0.0
+          artifacts: dist/*
