@@ -1,21 +1,30 @@
-name: myGitTool
+name: Build and Release
 
 on:
   push:
     branches:
-      - main
+      - main # 触发分支可根据你的需要调整
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies and build
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.21.3' # 使用你的 Node.js 版本
+
+      - name: Install dependencies
         run: |
           npm install
-          npm run build:win
+
+      - name: Build Electron app
+        run: |
+          npm run build # 替换成你的构建命令
 
       - name: Create Release
         id: create_release
@@ -23,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.0.0  # 你的版本号
+          tag_name: v1.0.0 # 自定义版本号
           release_name: Release v1.0.0
           body: Release description goes here
           draft: false
