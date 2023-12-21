@@ -44,3 +44,10 @@ jobs:
             dist/*.exe # 替换为你的发布文件路径
             dist/*.dmg
             dist/*.AppImage
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset-path: dist/*.exe
+          asset-name: myGitTool.exe
+          asset-content-type: application/octet-stream
