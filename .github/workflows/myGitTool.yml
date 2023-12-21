@@ -29,21 +29,6 @@ jobs:
         run: |
           yarn build # 替换成你的构建命令
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v1.0.0
-          release_name: Release v1.0.0
-          body: Release description goes here
-          draft: false
-          prerelease: false
-          files: |
-            dist/*.exe # 替换为你的发布文件路径
-            dist/*.dmg
-            dist/*.AppImage
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
