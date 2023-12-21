@@ -27,10 +27,9 @@ jobs:
           yarn build # 替换成你的构建命令
 
       - name: Upload to Release Action
-        uses: Shopify/upload-to-release@v1.0.1
+        uses: actions/upload-artifact@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: myGitTool.exe
+          name: myGitTool
           path: /dist
-          content-type: application/zip
