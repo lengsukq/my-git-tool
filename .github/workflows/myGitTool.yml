@@ -16,7 +16,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '20'
 
       - name: Install dependencies
         run: |
@@ -26,14 +26,11 @@ jobs:
         run: |
           yarn build # 替换成你的构建命令
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Upload to Release Action
+        uses: Shopify/upload-to-release@v1.0.1
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.0.0
-          release_name: Release v1.0.0
-          body: Release description goes here
-          draft: false
-          prerelease: false
+          name: myGitTool.exe
+          path: /dist
+          content-type: application/zip
