@@ -32,4 +32,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: myGitTool
-          path: /dist
+          path: ./dist
