@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [ windows-latest ]
 
     steps:
       - name: Check out Git repository
@@ -23,7 +23,7 @@ jobs:
         run: |
           yarn install
 
-      - name: Build Electron app for Windows
+      - name: Build Electron app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -45,7 +45,10 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
       - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           asset-path: dist/*.exe
           asset-name: myGitTool.exe
           asset-content-type: application/octet-stream
+          token: ${{ secrets.GITHUB_TOKEN }}
