@@ -33,7 +33,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_path: ./dist/*.exe
+          asset_path: ./dist/myGitTool Setup 1.0.0.exe
           asset_name: myGitTool.exe
           asset_content_type: application/octet-stream
           upload_url: https://api.github.com/repos/lengsukq/my-git-tool/releases/assets
