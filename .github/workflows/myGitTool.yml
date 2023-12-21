@@ -44,3 +44,8 @@ jobs:
             dist/*.exe # 替换为你的发布文件路径
             dist/*.dmg
             dist/*.AppImage
+      - uses: actions/upload-release-asset@v1
+        with:
+          asset-path: dist/*.exe
+          asset-name: myGitTool.exe
+          asset-content-type: application/octet-stream
