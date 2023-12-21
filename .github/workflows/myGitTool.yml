@@ -41,6 +41,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ./dist/*.exe # 替换为你的发布文件路径
-            ./dist/*.dmg
-            ./dist/*.AppImage
+            dist/*.exe # 替换为你的发布文件路径
+            dist/*.dmg
+            dist/*.AppImage
