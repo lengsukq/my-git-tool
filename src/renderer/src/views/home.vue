@@ -15,6 +15,7 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="gitCommit">提交代码</el-button>
+        <el-button  @click="gitPush">推送代码</el-button>
         <el-button  @click="gitPull">更新代码</el-button>
       </el-form-item>
       <el-form-item>
@@ -80,6 +81,10 @@ const handleClose = (tag) => {
 const gitPull = () => {
 // 向主进程发送消息
   ipcRenderer.send('gitPull', JSON.stringify(formInline));
+}
+const gitPush = () => {
+// 向主进程发送消息
+  ipcRenderer.send('gitPush', JSON.stringify(formInline));
 }
 const gitCommit = () => {
   // saveToCache();

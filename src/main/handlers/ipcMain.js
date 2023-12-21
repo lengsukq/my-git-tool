@@ -25,6 +25,25 @@ export function gitPull(){
   });
 
 }
+export function gitPush(){
+  ipcMain.on('gitPush', (event, arg) => {
+    let formInline = JSON.parse(arg)
+    // 在这里可以执行相应的操作，并向渲染进程发送回复
+    // 执行Shell命令
+    exec(`cd ${formInline.file} && git pull`, (error, stdout, stderr) => {
+      if (error) {
+        event.reply('command-result', { error: error.message });
+        return;
+      }
+      if (stderr) {
+        event.reply('command-result', { error: stderr });
+        return;
+      }
+      event.reply('command-result', { result: stdout });
+    });
+    event.reply('reply-from-main', arg);
+  });
+}
 
 // 提交代码
 export function gitCommit(){
