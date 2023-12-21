@@ -26,10 +26,8 @@ jobs:
         run: |
           yarn build:win # 替换成你的构建命令
 
-      - name: Upload to Release Action
-        uses: actions/upload-artifact@v3
+      - name: Release for Windows
+        if: matrix.os == 'windows-latest'
+        run: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          name: myGitTool
-          path: dist/*exe
