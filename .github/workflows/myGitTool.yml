@@ -52,3 +52,4 @@ jobs:
           asset-name: myGitTool.exe
           asset-content-type: application/octet-stream
           token: ${{ secrets.GITHUB_TOKEN }}
+          upload_url: https://api.github.com/repos/lengsukq/my-git-tool/releases/assets
