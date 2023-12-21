@@ -3,3 +3,4 @@ dist
 out
 *.log*
 /.idea/vcs.xml
+/.idea/jsLibraryMappings.xml

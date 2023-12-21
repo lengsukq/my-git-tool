@@ -1,6 +1,6 @@
-# my-app
+# my-git-tool
 
-An Electron application with Vue
+![img.png](readmeImg/img.png)
 
 ## Recommended IDE Setup
 

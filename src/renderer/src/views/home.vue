@@ -1,53 +1,49 @@
 <template>
-  <el-form :inline="true" :model="formInline" class="demo-form-inline">
-    <el-form-item label="项目别名">
-      <el-input v-model="formInline.name" placeholder="" clearable/>
-    </el-form-item>
-    <el-form-item label="本地目录">
-      <el-input v-model="formInline.file" placeholder="" clearable/>
-    </el-form-item>
-    <el-form-item label="提交描述">
-      <el-input v-model="formInline.text" placeholder="" clearable/>
-    </el-form-item>
-    <el-form-item label="仓库地址">
-      <el-input v-model="formInline.url" placeholder="" clearable/>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="gitPull">更新代码</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="gitCommit">提交代码</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="saveToCache">存到缓存</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="" @click="getCache">获取缓存</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="" @click="restCache">清空缓存</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="" @click="setNewUrl">更新仓库地址</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="" @click="getTheUrl">获取仓库地址</el-button>
-    </el-form-item>
-  </el-form>
-  <div class="flex flex-wrap gap-2 my-2">
-    <el-tag
-      v-for="(tag,index) in formList"
-      :key="tag.name"
-      class="mx-1"
-      :class="{'tagChecked':checkedIndex===index}"
-      @click="setInfo(index)"
-      closable
-      :disable-transitions="false"
-      @close="handleClose(tag)"
-    >
-      {{ tag.name }}
-    </el-tag>
-  </div>
+  <el-card class="box-card">
+    <el-form :model="formInline" class="">
+      <el-form-item label="项目别名">
+        <el-input v-model="formInline.name" placeholder="" clearable/>
+      </el-form-item>
+      <el-form-item label="本地目录">
+        <el-input v-model="formInline.file" placeholder="" clearable/>
+      </el-form-item>
+      <el-form-item label="仓库地址">
+        <el-input v-model="formInline.url" placeholder="" clearable/>
+      </el-form-item>
+      <el-form-item label="提交描述">
+        <el-input v-model="formInline.text" placeholder="" type="textarea" show-word-limit clearable/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="gitCommit">提交代码</el-button>
+        <el-button  @click="gitPull">更新代码</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="setNewUrl">更新仓库地址</el-button>
+        <el-button type="" @click="getTheUrl">获取仓库地址</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="saveToCache">存到缓存</el-button>
+        <el-button type="" @click="getCache">获取缓存</el-button>
+        <el-button type="" @click="restCache">清空缓存</el-button>
+      </el-form-item>
+
+    </el-form>
+    <div class="flex flex-wrap gap-2 my-2">
+      <el-tag
+        v-for="(tag,index) in formList"
+        :key="tag.name"
+        class="mx-1"
+        :class="{'tagChecked':checkedIndex===index}"
+        @click="setInfo(index)"
+        closable
+        :disable-transitions="false"
+        @close="handleClose(tag)"
+      >
+        {{ tag.name }}
+      </el-tag>
+    </div>
+  </el-card>
+
 
 </template>
 
