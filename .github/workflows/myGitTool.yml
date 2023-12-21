@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Electron app for Windows
         run: |
-          yarn build # 替换成你的构建命令
+          yarn build:win # 替换成你的构建命令
 
       - name: Upload to Release Action
         uses: actions/upload-artifact@v3
@@ -32,3 +32,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: myGitTool
+          path: dist
