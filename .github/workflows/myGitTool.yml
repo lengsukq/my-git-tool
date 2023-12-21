@@ -9,7 +9,7 @@ jobs:
   # 工作的名称“编译windows版”
   buildwin:
     # 运行的操作系统 windows server 2022
-    runs-on: windows-2022
+    runs-on: windows-latest
     # 步骤
     steps:
       # 使用预制action：拉取最新的代码
@@ -18,7 +18,7 @@ jobs:
       - name: Install and Build
         # 该步骤运行的终端命令，进入仓库的src目录，安装依赖，运行编译命令
         run:
-          npm install && npm run build:win
+          yarn install && yarn build:win
       # 步骤二的名称：将编译后的结果上传
       - name: Upload File
         # 使用预制action：上传文件，可以将执行路径打包成zip上传
