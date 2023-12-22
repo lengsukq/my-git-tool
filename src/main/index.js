@@ -25,6 +25,7 @@ function createWindow() {
     width: 500,
     height: 670,
     show: false,
+    title:'myGitTool',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? {icon} : {}),
     webPreferences: {
