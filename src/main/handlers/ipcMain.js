@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 const { ipcMain,app } = require('electron');
 const {exec} = require("child_process");
-
+const { Client } = require('ssh2');
 // 拉取最新代码
 export function gitPull(){
   ipcMain.on('gitPull', (event, arg) => {
@@ -144,5 +144,52 @@ export function getTheUrl() {
       event.reply('command-result', { result: stdout });
     });
     event.reply('reply-from-main', arg);
+  });
+}
+export function SSHAct() {
+  console.log('formSSH1')
+
+  // 监听来自渲染进程的消息
+  ipcMain.on('SSHAct', (event, arg) => {
+    let formSSH = JSON.parse(arg)
+// 创建 SSH 客户端实例
+    const conn = new Client();
+
+// 定义连接选项
+    const connOptions = {
+      host: formSSH.sshUrl.split(":")[0],
+      port: formSSH.sshUrl.split(":")[1],
+      username: formSSH.sshName,
+      password: formSSH.sshPassword // 替换为实际服务器密码
+    };
+
+// 连接到服务器
+    conn.on('ready', () => {
+      console.log('SSH connection established');
+
+      // 在连接准备好后执行远程命令
+      conn.exec(`${formSSH.sshShell}`, (err, stream) => {
+        if (err) throw err;
+
+        stream.on('data', data => {
+          event.reply('command-result', { result: data.toString() });
+          console.log('Command Output:', data.toString());
+        });
+
+        stream.on('close', () => {
+          console.log('Stream closed');
+
+          conn.end();
+        });
+      });
+    });
+
+    conn.on('error', err => {
+      event.reply('command-result', { result: err });
+      console.error('SSH connection error:', err);
+    });
+
+    // 发起连接
+    conn.connect(connOptions);
   });
 }

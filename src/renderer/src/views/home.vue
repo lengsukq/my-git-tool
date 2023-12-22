@@ -13,6 +13,33 @@
       <el-form-item label="提交描述">
         <el-input v-model="formInline.text" placeholder="" type="textarea" show-word-limit clearable/>
       </el-form-item>
+      <el-form-item label="远程命令">
+
+        <el-switch
+          v-model="formInline.isSSH">
+        </el-switch>
+
+        <el-button type="primary" class="mgl12" @click="SSHAct">执行远程</el-button>
+
+      </el-form-item>
+      <el-collapse v-model="fromSSH.isShow" class="mgb12" v-if="formInline.isSSH" accordion>
+        <el-collapse-item title="远程配置" name="false">
+          <el-form :model="fromSSH" class="">
+            <el-form-item label="远程地址">
+              <el-input v-model="fromSSH.sshUrl" placeholder="" show-word-limit clearable/>
+            </el-form-item>
+            <el-form-item label="连接昵称">
+              <el-input v-model="fromSSH.sshName" placeholder="" show-word-limit clearable/>
+            </el-form-item>
+            <el-form-item label="连接密码">
+              <el-input v-model="fromSSH.sshPassword" placeholder="" type="password" show-word-limit clearable/>
+            </el-form-item>
+            <el-form-item label="执行命令">
+              <el-input v-model="fromSSH.sshShell" placeholder="" type="textarea" show-word-limit clearable/>
+            </el-form-item>
+          </el-form>
+        </el-collapse-item>
+      </el-collapse>
       <el-form-item>
         <el-button type="primary" @click="gitCommit">提交代码</el-button>
         <el-button  @click="gitPush">推送代码</el-button>
@@ -59,6 +86,15 @@ const formInline = reactive({
   file: '',
   text: '',
   url: '',
+  isSSH:true,
+
+})
+const fromSSH = reactive({
+  isShow:false,
+  sshUrl:'',
+  sshName:'',
+  sshPassword:'',
+  sshShell:'cd /home/leng/code/fun-online-api && git pull',
 })
 const radio = ref('')
 const formList = ref([])
@@ -66,7 +102,8 @@ const formList = ref([])
 ipcRenderer.on('command-result', (event, arg) => {
   console.log('监听来自主进程的回复', arg);
   // 在这里可以处理来自主进程的回复
-  ElMessage(arg.result ? arg.result : arg.error)
+  ElMessage(arg.result ? arg.result : arg.error);
+
 });
 // 监听主进程的回复
 ipcRenderer.on('send-object', (event, obj) => {
@@ -74,6 +111,10 @@ ipcRenderer.on('send-object', (event, obj) => {
   // 在这里处理接收到的对象数据
   formList.value = obj;
 });
+const SSHAct = () => {
+    console.log('执行远程')
+    ipcRenderer.send('SSHAct', JSON.stringify(fromSSH));
+}
 const handleClose = (tag) => {
   formList.value.splice(formList.value.indexOf(tag), 1);
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
@@ -124,7 +165,6 @@ const restCache = () => {
   formList.value = [];
   ElMessage.success('已清空缓存');
   ipcRenderer.send('save-object', JSON.stringify([]));
-
 }
 const deepClone = (obj) => {
   return JSON.parse(JSON.stringify(obj));
