@@ -19,11 +19,11 @@
           v-model="formInline.isSSH">
         </el-switch>
 
-        <el-button type="primary" class="mgl12" @click="SSHAct">执行远程</el-button>
+        <el-button type="primary" class="mgl12" v-if="formInline.isSSH" @click="SSHAct">执行远程</el-button>
 
       </el-form-item>
       <el-collapse v-model="fromSSH.isShow" class="mgb12" v-if="formInline.isSSH" accordion>
-        <el-collapse-item title="远程配置" name="false">
+        <el-collapse-item title="远程配置" name="ssh">
           <el-form :model="fromSSH" class="">
             <el-form-item label="远程地址">
               <el-input v-model="fromSSH.sshUrl" placeholder="" show-word-limit clearable/>
@@ -42,8 +42,8 @@
       </el-collapse>
       <el-form-item>
         <el-button type="primary" @click="gitCommit">提交代码</el-button>
-        <el-button  @click="gitPush">推送代码</el-button>
-        <el-button  @click="gitPull">更新代码</el-button>
+        <el-button @click="gitPush">推送代码</el-button>
+        <el-button @click="gitPull">更新代码</el-button>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="setNewUrl">更新仓库地址</el-button>
@@ -86,15 +86,14 @@ const formInline = reactive({
   file: '',
   text: '',
   url: '',
-  isSSH:true,
-
+  isSSH: false,
 })
 const fromSSH = reactive({
-  isShow:false,
-  sshUrl:'',
-  sshName:'',
-  sshPassword:'',
-  sshShell:'cd /home/leng/code/fun-online-api && git pull',
+  isShow: 'ssh',
+  sshUrl: '',
+  sshName: '',
+  sshPassword: '',
+  sshShell: '',
 })
 const radio = ref('')
 const formList = ref([])
@@ -111,9 +110,15 @@ ipcRenderer.on('send-object', (event, obj) => {
   // 在这里处理接收到的对象数据
   formList.value = obj;
 });
+ipcRenderer.on('sendSSHCache', (event, obj) => {
+  console.log('sendSSHCache监听主进程的回复:', obj);
+  // 在这里处理接收到的对象数据
+  Object.assign(fromSSH, obj)
+});
 const SSHAct = () => {
-    console.log('执行远程')
-    ipcRenderer.send('SSHAct', JSON.stringify(fromSSH));
+  console.log('执行远程')
+  ipcRenderer.send('saveSSHCache', JSON.stringify(fromSSH));
+  ipcRenderer.send('SSHAct', JSON.stringify(fromSSH));
 }
 const handleClose = (tag) => {
   formList.value.splice(formList.value.indexOf(tag), 1);
@@ -144,13 +149,13 @@ const saveToCache = () => {
   // 向主进程发送保存对象的消息
   for (let item of formList.value) {
     if (item.name === formInline.name) {
-      if (item.text !== formInline.text || item.file !==formInline.file){
+      if (item.text !== formInline.text || item.file !== formInline.file) {
         let pushIndex = formList.value.indexOf(item);
         formList.value[pushIndex] = formInline;
         ipcRenderer.send('save-object', JSON.stringify(formList.value));
         ElMessage.success('更新缓存成功');
         getCache();
-      }else{
+      } else {
         ElMessage.error('该数据已存在');
       }
       return false;
@@ -173,16 +178,21 @@ const getCache = () => {
   // 向主进程发送获取对象的消息
   ipcRenderer.send('get-object');
 }
+const getSSHCache = () => {
+  // 向主进程发送获取对象的消息
+  ipcRenderer.send('getSSHCache');
+}
 const setInfo = (index) => {
   checkedIndex.value = index;
   console.log('formList.value[index]', index, formList.value[index])
   // Object.assign(formInline, formList.value[index]);
-  for(let key in formList.value[index]){
+  for (let key in formList.value[index]) {
     formInline[key] = formList.value[index][key];
   }
 }
 onMounted(() => {
   getCache();
+  getSSHCache();
 })
 </script>
 
@@ -190,10 +200,12 @@ onMounted(() => {
 .demo-form-inline .el-input {
   --el-input-width: 220px;
 }
-.el-tag.is-closable{
+
+.el-tag.is-closable {
   margin-right: 5px;
 }
-.tagChecked{
+
+.tagChecked {
   background: #79bbff;
   color: white;
   box-shadow: 0 0 10px 5px white; /* 添加白色阴影 */

@@ -1,8 +1,19 @@
-import {app, BrowserWindow, ipcMain, shell} from 'electron'
+import {app, BrowserWindow, shell} from 'electron'
 import {join} from 'path'
 import {electronApp, is, optimizer} from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import {getLocalStorage, getTheUrl, gitCommit, gitPull, saveObjectToCache, setNewUrl,gitPush} from "./handlers/ipcMain";
+import {
+  getLocalStorage,
+  getLocalStorageSSH,
+  getTheUrl,
+  gitCommit,
+  gitPull,
+  gitPush,
+  saveObjectToCache,
+  saveSSHToCache,
+  setNewUrl,
+  SSHAct
+} from "./handlers/ipcMain";
 // import {gitCommit, gitPull} from "./handlers/ipcMain";
 const {exec} = require('child_process');
 const fs = require('fs');
@@ -31,7 +42,7 @@ function createWindow() {
     shell.openExternal(details.url)
     return {action: 'deny'}
   })
-  console.log('is.dev && process.env[\'ELECTRON_RENDERER_URL\']----',is.dev && process.env['ELECTRON_RENDERER_URL'])
+  console.log('is.dev && process.env[\'ELECTRON_RENDERER_URL\']----', is.dev && process.env['ELECTRON_RENDERER_URL'])
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -53,6 +64,9 @@ app.whenReady().then(() => {
   setNewUrl();
   getTheUrl();
   gitPush();
+  SSHAct();
+  getLocalStorageSSH();
+  saveSSHToCache();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
