@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest # 使用Ubuntu最新版本作为运行环境
+    runs-on: windows-latest # 使用Ubuntu最新版本作为运行环境
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
