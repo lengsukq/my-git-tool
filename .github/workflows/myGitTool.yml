@@ -20,11 +20,11 @@ jobs:
           node-version: '16.20.2' # 指定要使用的Node.js版本
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile # 或 npm ci 如果你使用npm
+        run: yarn install# 或 npm ci 如果你使用npm
 
       - name: Build Electron app
         run: |
-          yarn electron-builder build --publish never # 不发布到远程服务器，仅打包
+          yarn build
           # 或指定特定平台：yarn electron-builder build --linux --win --mac
 
       - name: Publish to GitHub Releases (可选)
