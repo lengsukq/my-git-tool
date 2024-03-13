@@ -144,12 +144,29 @@ const getTheUrl = () => {
 // 向主进程发送消息
   ipcRenderer.send('getTheUrl', JSON.stringify(formInline));
 }
+
+// 传入两个对象，如果第一个对象存在的属性，第二个对象中的属性全部相等，则返回false，反之返回true
+const deepEqual = (obj1, obj2) => {
+  const keys1 = Object.keys(obj1);
+  for (let key of keys1) {
+    const val1 = obj1[key];
+    const val2 = obj2[key];
+    // 若不相等则返回true，可以存入
+    if (val1 !== val2){
+      return true;
+    }
+  }
+  return false;
+};
+
+
+
 const saveToCache = () => {
   console.log('formList',formList.value)
   // 向主进程发送保存对象的消息
   for (let item of formList.value) {
     if (item.name === formInline.name) {
-      if (item.text !== formInline.text || item.file !== formInline.file) {
+      if (deepEqual(item,formInline)) {
         let pushIndex = formList.value.indexOf(item);
         formList.value[pushIndex] = formInline;
         ipcRenderer.send('save-object', JSON.stringify(formList.value));
@@ -158,7 +175,7 @@ const saveToCache = () => {
       } else {
         ElMessage.error('该数据已存在');
       }
-      return false;
+      return;
     }
   }
   formList.value.push(deepClone(formInline));
