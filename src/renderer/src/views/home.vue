@@ -95,23 +95,22 @@ const fromSSH = reactive({
   sshPassword: '',
   sshShell: '',
 })
-const radio = ref('')
 const formList = ref([])
 // 监听来自主进程的回复
 ipcRenderer.on('command-result', (event, arg) => {
-  console.log('监听来自主进程的回复', arg);
+  console.log('command-result---监听来自主进程的回复', arg);
   // 在这里可以处理来自主进程的回复
   ElMessage(arg.result ? arg.result : arg.error);
 
 });
 // 监听主进程的回复
 ipcRenderer.on('send-object', (event, obj) => {
-  console.log('监听主进程的回复:', obj);
+  console.log('send-object---监听主进程的回复:', obj);
   // 在这里处理接收到的对象数据
-  formList.value = obj;
+  formList.value = obj?obj:formList.value;
 });
 ipcRenderer.on('sendSSHCache', (event, obj) => {
-  console.log('sendSSHCache监听主进程的回复:', obj);
+  console.log('sendSSHCache---监听主进程的回复:', obj);
   // 在这里处理接收到的对象数据
   Object.assign(fromSSH, obj)
 });
@@ -146,6 +145,7 @@ const getTheUrl = () => {
   ipcRenderer.send('getTheUrl', JSON.stringify(formInline));
 }
 const saveToCache = () => {
+  console.log('formList',formList.value)
   // 向主进程发送保存对象的消息
   for (let item of formList.value) {
     if (item.name === formInline.name) {
