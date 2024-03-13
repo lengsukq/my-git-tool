@@ -1,39 +1,37 @@
-name: Build/release
+name: Electron Build
 
-on: push
+on:
+  push:
+    branches:
+      - master # 或者你希望触发构建的分支名
+  release:
+    types: [created]
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ windows-latest ]
-
+  build-and-publish:
+    runs-on: ubuntu-latest # 使用Ubuntu最新版本作为运行环境
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v1
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: '16.20.2' # 指定要使用的Node.js版本
 
       - name: Install dependencies
-        run: |
-          yarn install
+        run: yarn install --frozen-lockfile # 或 npm ci 如果你使用npm
 
       - name: Build Electron app
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yarn build # 替换成你的构建命令
+          yarn electron-builder build --publish never # 不发布到远程服务器，仅打包
+          # 或指定特定平台：yarn electron-builder build --linux --win --mac
 
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to GitHub Releases (可选)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
         with:
-          asset_path: ./dist
-          asset_name: myGitTool.exe
-          asset_content_type: application/octet-stream
-          upload_url: https://api.github.com/repos/lengsukq/my-git-tool/releases/assets
+          files: dist/*.exe, dist/*.dmg, dist/*.deb, dist/*.rpm # 上传不同平台的打包结果
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用GitHub提供的默认token发布新版本
+
