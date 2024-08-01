@@ -5,14 +5,10 @@ import icon from '../../resources/icon.png?asset'
 import {
   getLocalStorage,
   getLocalStorageSSH,
-  getTheUrl,
-  gitCommit,
-  gitPull,
-  gitPush,
   saveObjectToCache,
   saveSSHToCache,
-  setNewUrl,
-  SSHAct
+  SSHAct,
+  executeShellCommand
 } from "./handlers/ipcMain";
 // import {gitCommit, gitPull} from "./handlers/ipcMain";
 const {exec} = require('child_process');
@@ -58,16 +54,12 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
 // 注册 IPC 监听器
-  gitPull();
-  gitCommit();
   getLocalStorage();
   saveObjectToCache();
-  setNewUrl();
-  getTheUrl();
-  gitPush();
   SSHAct();
   getLocalStorageSSH();
   saveSSHToCache();
+  executeShellCommand();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

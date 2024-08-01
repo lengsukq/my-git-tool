@@ -5,73 +5,30 @@ const {ipcMain, app} = require('electron');
 const {exec} = require("child_process");
 const {Client} = require('ssh2');
 
-// 拉取最新代码
-export function gitPull() {
-  ipcMain.on('gitPull', (event, arg) => {
-    let formInline = JSON.parse(arg)
+// 执行Shell命令并返回结果
+export function executeShellCommand() {
+  ipcMain.on('executeShellCommand', (event, arg) => {
+    console.log('executeShellCommand', arg);
+    let commandInfo = JSON.parse(arg)
+    // command = {fn:xx,command:xx,isMessage:xx}
     // 在这里可以执行相应的操作，并向渲染进程发送回复
     // 执行Shell命令
-    exec(`cd ${formInline.file} && git pull`, (error, stdout, stderr) => {
+    exec(commandInfo.command, (error, stdout, stderr) => {
+      const reply = commandInfo.isMessage ? 'command-result': 'command-noMsg';
       if (error) {
-        event.reply('command-result', {error: error.message});
+        event.reply(reply, {error: error.message});
         return;
       }
       if (stderr) {
-        event.reply('command-result', {error: stderr});
+        event.reply(reply, {error: stderr});
         return;
       }
-      event.reply('command-result', {result: stdout});
+      event.reply(reply, {result: stdout,fn:commandInfo.fn});
     });
-    event.reply('reply-from-main', arg);
+    // event.reply('reply-from-main', arg);
   });
 
 }
-
-export function gitPush() {
-  ipcMain.on('gitPush', (event, arg) => {
-    let formInline = JSON.parse(arg)
-    // 在这里可以执行相应的操作，并向渲染进程发送回复
-    // 执行Shell命令
-    exec(`cd ${formInline.file} && git pull`, (error, stdout, stderr) => {
-      if (error) {
-        event.reply('command-result', {error: error.message});
-        return;
-      }
-      if (stderr) {
-        event.reply('command-result', {error: stderr});
-        return;
-      }
-      event.reply('command-result', {result: stdout});
-    });
-    event.reply('reply-from-main', arg);
-  });
-}
-
-// 提交代码
-export function gitCommit() {
-  // 监听来自渲染进程的消息
-  ipcMain.on('gitCommit', (event, arg) => {
-    let formInline = JSON.parse(arg)
-    // 在这里可以执行相应的操作，并向渲染进程发送回复
-    // 执行Shell命令
-    //stdout（标准输出流） 用于输出正常的程序输出。
-    // stderr（标准错误流） 用于输出错误信息和警告，通常用于指示程序执行时的问题。
-    exec(`cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`, (error, stdout, stderr) => {
-      if (error) {
-        event.reply('command-result', {error: error.message});
-        return;
-      }
-      if (stderr) {
-        event.reply('command-result', {error: stderr});
-        return;
-      }
-      event.reply('command-result', {result: stdout});
-    });
-    event.reply('reply-from-main', arg);
-  });
-
-}
-
 // 从本地读取对象
 function getObjectFromCache() {
   const filePath = path.join(app.getPath('userData'), 'cache.json');
@@ -86,8 +43,8 @@ function getObjectFromCache() {
 
 // 从本地读取对象
 function getSSHCache() {
-  const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
   try {
+    const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
     const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data);
   } catch (err) {
@@ -105,12 +62,16 @@ export function getLocalStorageSSH() {
 }
 
 export function saveSSHToCache() {
+  try {
+    // 监听来自渲染进程的消息，保存对象到本地
+    ipcMain.on('saveSSHCache', (event, obj) => {
+      const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
+      fs.writeFileSync(filePath, obj);
+    });
+  }catch (err) {
+    console.error('Error reading file:', err);
+  }
 
-  // 监听来自渲染进程的消息，保存对象到本地
-  ipcMain.on('saveSSHCache', (event, obj) => {
-    const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
-    fs.writeFileSync(filePath, obj);
-  });
 }
 
 // 获取本地缓存对象
@@ -131,56 +92,6 @@ export function saveObjectToCache() {
     fs.writeFileSync(filePath, obj);
   });
 }
-
-// 修改远程地址
-export function setNewUrl() {
-
-  // 监听来自渲染进程的消息
-  ipcMain.on('setNewUrl', (event, arg) => {
-    let formInline = JSON.parse(arg)
-    // 在这里可以执行相应的操作，并向渲染进程发送回复
-    // 执行Shell命令
-    //stdout（标准输出流） 用于输出正常的程序输出。
-    // stderr（标准错误流） 用于输出错误信息和警告，通常用于指示程序执行时的问题。
-    exec(`cd ${formInline.file} && git remote set-url origin ${formInline.url}`, (error, stdout, stderr) => {
-      if (error) {
-        event.reply('command-result', {error: error.message});
-        return;
-      }
-      if (stderr) {
-        event.reply('command-result', {error: stderr});
-        return;
-      }
-      event.reply('command-result', {result: stdout});
-    });
-    event.reply('reply-from-main', arg);
-  });
-}
-
-// 修改远程地址
-export function getTheUrl() {
-  // 监听来自渲染进程的消息
-  ipcMain.on('getTheUrl', (event, arg) => {
-    let formInline = JSON.parse(arg)
-    // 在这里可以执行相应的操作，并向渲染进程发送回复
-    // 执行Shell命令
-    //stdout（标准输出流） 用于输出正常的程序输出。
-    // stderr（标准错误流） 用于输出错误信息和警告，通常用于指示程序执行时的问题。
-    exec(`cd ${formInline.file} && git remote -v`, (error, stdout, stderr) => {
-      if (error) {
-        event.reply('command-result', {error: error.message});
-        return;
-      }
-      if (stderr) {
-        event.reply('command-result', {error: stderr});
-        return;
-      }
-      event.reply('command-result', {result: stdout});
-    });
-    event.reply('reply-from-main', arg);
-  });
-}
-
 export function SSHAct() {
   console.log('formSSH1')
 
