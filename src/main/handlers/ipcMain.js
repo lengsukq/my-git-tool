@@ -5,6 +5,31 @@ const {ipcMain, app} = require('electron');
 const {exec} = require("child_process");
 const {Client} = require('ssh2');
 
+// 执行Shell命令并返回结果
+export function executeShellCommand() {
+  ipcMain.on('executeShellCommand', (event, arg) => {
+    console.log('executeShellCommand', arg);
+    let commandInfo = JSON.parse(arg)
+    // command = {fn:xx,command:xx,isMessage:xx}
+    // 在这里可以执行相应的操作，并向渲染进程发送回复
+    // 执行Shell命令
+    exec(commandInfo.command, (error, stdout, stderr) => {
+      const reply = commandInfo.isMessage ? 'command-result': 'command-noMsg';
+      if (error) {
+        event.reply(reply, {error: error.message});
+        return;
+      }
+      if (stderr) {
+        event.reply(reply, {error: stderr});
+        return;
+      }
+      event.reply(reply, {result: stdout,fn:commandInfo.fn});
+    });
+    // event.reply('reply-from-main', arg);
+  });
+
+}
+
 // 拉取最新代码
 export function gitPull() {
   ipcMain.on('gitPull', (event, arg) => {
@@ -86,8 +111,8 @@ function getObjectFromCache() {
 
 // 从本地读取对象
 function getSSHCache() {
-  const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
   try {
+    const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
     const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data);
   } catch (err) {
@@ -105,12 +130,16 @@ export function getLocalStorageSSH() {
 }
 
 export function saveSSHToCache() {
+  try {
+    // 监听来自渲染进程的消息，保存对象到本地
+    ipcMain.on('saveSSHCache', (event, obj) => {
+      const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
+      fs.writeFileSync(filePath, obj);
+    });
+  }catch (err) {
+    console.error('Error reading file:', err);
+  }
 
-  // 监听来自渲染进程的消息，保存对象到本地
-  ipcMain.on('saveSSHCache', (event, obj) => {
-    const filePath = path.join(app.getPath('userData'), 'SSHCache.json');
-    fs.writeFileSync(filePath, obj);
-  });
 }
 
 // 获取本地缓存对象

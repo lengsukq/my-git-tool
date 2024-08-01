@@ -54,6 +54,23 @@
         <el-button type="" @click="getCache">获取缓存</el-button>
         <el-button type="" @click="restCache">清空缓存</el-button>
       </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="executeShellCommand('openWinCmd')">打开windows命令行</el-button>
+        <el-button type="primary" @click="executeShellCommand('getPackageJson')">获取项目命令</el-button>
+        <el-button type="primary" @click="executeShellCommand('getAllBranch')">获取分支</el-button>
+
+      </el-form-item>
+      <el-form-item>
+        <el-select v-model="nowBranch" placeholder="Select" filterable>
+          <el-option
+            filterable
+            v-for="item in branchList"
+            :key="item"
+            :label="item"
+            :value="item"
+          />
+        </el-select>
+      </el-form-item>
 
     </el-form>
     <div class="flex flex-wrap gap-2 my-2">
@@ -76,7 +93,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref} from 'vue';
+import {computed, onMounted, reactive, ref} from 'vue';
 import {ElMessage} from 'element-plus'
 
 const {ipcRenderer} = require('electron');
@@ -88,6 +105,8 @@ const formInline = reactive({
   url: '',
   isSSH: false,
 })
+const nowBranch = ref([])
+const branchList = ref([])
 const fromSSH = reactive({
   isShow: 'ssh',
   sshUrl: '',
@@ -114,6 +133,33 @@ ipcRenderer.on('sendSSHCache', (event, obj) => {
   // 在这里处理接收到的对象数据
   Object.assign(fromSSH, obj)
 });
+ipcRenderer.on('command-noMsg', (event, obj) => {
+  console.log('command-noMsg---监听主进程的回复:', obj.fn, obj.result);
+  if (obj.fn === 'getAllBranch') {
+    const Branches = parseBranches(obj.result);
+    branchList.value = Branches.formatted;
+    nowBranch.value = Branches.current;
+  }
+  // 在这里处理接收到的对象数据
+  // Object.assign(fromSSH, obj)
+});
+// 处理分支信息的函数
+const parseBranches = (branchOutput) => {
+  const branches = branchOutput.split('\n').map(branch => branch.trim());
+  const formatted = branches.map(branch => branch.replace(/^\* /, ''));
+  const current = branches.find(branch => branch.startsWith('*'));
+  return { formatted, current: current ? current.slice(2) : null };
+};
+
+const commands = computed(() => ({
+  openWinCmd: 'start cmd.exe',  // 打开windows命令行
+  getPackageJson: `type package.json | jq '.scripts'`, // 获取package.json中的脚本命令
+  getAllBranch: `cd ${formInline.file} && git branch -a`,  // 获取所有分支
+}))
+const executeShellCommand = (commandsKey,isMessage=false) => {
+  console.log('执行命令', commandsKey);
+  ipcRenderer.send('executeShellCommand', JSON.stringify({fn: commandsKey, command: commands.value[commandsKey],isMessage}));
+}
 const SSHAct = () => {
   console.log('执行远程')
   ipcRenderer.send('saveSSHCache', JSON.stringify(fromSSH));

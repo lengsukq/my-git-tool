@@ -12,7 +12,8 @@ import {
   saveObjectToCache,
   saveSSHToCache,
   setNewUrl,
-  SSHAct
+  SSHAct,
+  executeShellCommand
 } from "./handlers/ipcMain";
 // import {gitCommit, gitPull} from "./handlers/ipcMain";
 const {exec} = require('child_process');
@@ -68,6 +69,7 @@ app.whenReady().then(() => {
   SSHAct();
   getLocalStorageSSH();
   saveSSHToCache();
+  executeShellCommand();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
