@@ -28,7 +28,7 @@
             <el-form-item label="远程地址">
               <el-input v-model="fromSSH.sshUrl" placeholder="" show-word-limit clearable/>
             </el-form-item>
-            <el-form-item label="连接昵称">
+            <el-form-item label="连接用户">
               <el-input v-model="fromSSH.sshName" placeholder="" show-word-limit clearable/>
             </el-form-item>
             <el-form-item label="连接密码">
@@ -41,13 +41,13 @@
         </el-collapse-item>
       </el-collapse>
       <el-form-item>
-        <el-button type="primary" @click="gitCommit">提交代码</el-button>
-        <el-button @click="gitPush">推送代码</el-button>
-        <el-button @click="gitPull">更新代码</el-button>
+        <el-button type="primary" @click="executeShellCommand('gitCommit',true)">提交代码</el-button>
+        <el-button @click="executeShellCommand('gitPush',true)">推送代码</el-button>
+        <el-button @click="executeShellCommand('gitPull',true)">更新代码</el-button>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="setNewUrl">更新仓库地址</el-button>
-        <el-button type="" @click="getTheUrl">获取仓库地址</el-button>
+        <el-button type="primary" @click="executeShellCommand('setNewUrl',true)">更新仓库地址</el-button>
+        <el-button type="" @click="executeShellCommand('getTheUrl',true)">获取仓库地址</el-button>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="saveToCache">存到缓存</el-button>
@@ -155,6 +155,11 @@ const commands = computed(() => ({
   openWinCmd: 'start cmd.exe',  // 打开windows命令行
   getPackageJson: `type package.json | jq '.scripts'`, // 获取package.json中的脚本命令
   getAllBranch: `cd ${formInline.file} && git branch -a`,  // 获取所有分支
+  gitPull:`cd ${formInline.file} && git pull`,
+  gitPush:`cd ${formInline.file} && git push`,
+  gitCommit:`cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`,
+  setNewUrl:`cd ${formInline.file} && git remote set-url origin ${formInline.url}`,
+  getTheUrl:`cd ${formInline.file} && git remote -v`,
 }))
 const executeShellCommand = (commandsKey,isMessage=false) => {
   console.log('执行命令', commandsKey);
@@ -168,27 +173,6 @@ const SSHAct = () => {
 const handleClose = (tag) => {
   formList.value.splice(formList.value.indexOf(tag), 1);
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
-}
-const gitPull = () => {
-// 向主进程发送消息
-  ipcRenderer.send('gitPull', JSON.stringify(formInline));
-}
-const gitPush = () => {
-// 向主进程发送消息
-  ipcRenderer.send('gitPush', JSON.stringify(formInline));
-}
-const gitCommit = () => {
-  // saveToCache();
-// 向主进程发送消息
-  ipcRenderer.send('gitCommit', JSON.stringify(formInline));
-}
-const setNewUrl = () => {
-// 向主进程发送消息
-  ipcRenderer.send('setNewUrl', JSON.stringify(formInline));
-}
-const getTheUrl = () => {
-// 向主进程发送消息
-  ipcRenderer.send('getTheUrl', JSON.stringify(formInline));
 }
 
 // 传入两个对象，如果第一个对象存在的属性，第二个对象中的属性全部相等，则返回false，反之返回true
