@@ -14,13 +14,8 @@
         <el-input v-model="formInline.text" placeholder="" type="textarea" show-word-limit clearable/>
       </el-form-item>
       <el-form-item label="远程命令">
-
-        <el-switch
-          v-model="formInline.isSSH">
-        </el-switch>
-
+        <el-switch v-model="formInline.isSSH"></el-switch>
         <el-button type="primary" class="mgl12" v-if="formInline.isSSH" @click="SSHAct">执行远程</el-button>
-
       </el-form-item>
       <el-collapse v-model="fromSSH.isShow" class="mgb12" v-if="formInline.isSSH" accordion>
         <el-collapse-item title="远程配置" name="ssh">
@@ -41,110 +36,103 @@
         </el-collapse-item>
       </el-collapse>
       <el-form-item>
-        <el-button type="primary" @click="executeShellCommand('gitCommit',true)">提交代码</el-button>
-        <el-button @click="executeShellCommand('gitPush',true)">推送代码</el-button>
-        <el-button @click="executeShellCommand('gitPull',true)">更新代码</el-button>
+        <el-button type="primary" @click="executeShellCommand('gitCommit', true)">提交代码</el-button>
+        <el-button @click="executeShellCommand('gitPush', true)">推送代码</el-button>
+        <el-button @click="executeShellCommand('gitPull', true)">更新代码</el-button>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="executeShellCommand('setNewUrl',true)">更新仓库地址</el-button>
-        <el-button type="" @click="executeShellCommand('getTheUrl',true)">获取仓库地址</el-button>
+        <el-button type="primary" @click="executeShellCommand('setNewUrl', true)">更新仓库地址</el-button>
+        <el-button @click="executeShellCommand('getTheUrl', true)">获取仓库地址</el-button>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="saveToCache">存到缓存</el-button>
-        <el-button type="" @click="getCache">获取缓存</el-button>
-        <el-button type="" @click="restCache">清空缓存</el-button>
+        <el-button @click="getCache">获取缓存</el-button>
+        <el-button @click="restCache">清空缓存</el-button>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="executeShellCommand('openWinCmd')">打开windows命令行</el-button>
         <el-button type="primary" @click="executeShellCommand('getPackageJson')">获取项目命令</el-button>
         <el-button type="primary" @click="executeShellCommand('getAllBranch')">获取分支</el-button>
-
       </el-form-item>
       <el-form-item>
         <el-select v-model="nowBranch" placeholder="Select" filterable>
-          <el-option
-            filterable
-            v-for="item in branchList"
-            :key="item"
-            :label="item"
-            :value="item"
-          />
+          <el-option v-for="item in branchList" :key="item" :label="item" :value="item"/>
         </el-select>
       </el-form-item>
-
     </el-form>
     <div class="flex flex-wrap gap-2 my-2">
-      <el-tag
-        v-for="(tag,index) in formList"
-        :key="tag.name"
-        class="mx-1"
-        :class="{'tagChecked':checkedIndex===index}"
-        @click="setInfo(index)"
-        closable
-        :disable-transitions="false"
-        @close="handleClose(tag)"
-      >
+      <el-tag v-for="(tag, index) in formList" :key="tag.name" class="mx-1" :class="{'tagChecked': checkedIndex === index}" @click="setInfo(index)" closable :disable-transitions="false" @close="handleClose(tag)">
         {{ tag.name }}
       </el-tag>
     </div>
   </el-card>
-
-
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue';
-import {ElMessage} from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import { ipcRenderer } from 'electron';
 
-const {ipcRenderer} = require('electron');
-const checkedIndex = ref(null)
+interface FormInline {
+  name: string;
+  file: string;
+  text: string;
+  url: string;
+  isSSH: boolean;
+}
+
+interface FromSSH {
+  isShow: string;
+  sshUrl: string;
+  sshName: string;
+  sshPassword: string;
+  sshShell: string;
+}
+
+const checkedIndex = ref<number | null>(null);
 const formInline = reactive({
   name: '',
   file: '',
   text: '',
   url: '',
   isSSH: false,
-})
-const nowBranch = ref([])
-const branchList = ref([])
+});
+const nowBranch = ref<string>('');
+const branchList = ref<string[]>([]);
 const fromSSH = reactive({
   isShow: 'ssh',
   sshUrl: '',
   sshName: '',
   sshPassword: '',
   sshShell: '',
-})
-const formList = ref([])
-// 监听来自主进程的回复
+});
+const formList = ref<FormInline[]>([]);
+
 ipcRenderer.on('command-result', (event, arg) => {
   console.log('command-result---监听来自主进程的回复', arg);
-  // 在这里可以处理来自主进程的回复
   ElMessage(arg.result ? arg.result : arg.error);
-
 });
-// 监听主进程的回复
+
 ipcRenderer.on('send-object', (event, obj) => {
   console.log('send-object---监听主进程的回复:', obj);
-  // 在这里处理接收到的对象数据
-  formList.value = obj?obj:formList.value;
+  formList.value = obj ? obj : formList.value;
 });
+
 ipcRenderer.on('sendSSHCache', (event, obj) => {
   console.log('sendSSHCache---监听主进程的回复:', obj);
-  // 在这里处理接收到的对象数据
-  Object.assign(fromSSH, obj)
+  Object.assign(fromSSH, obj);
 });
+
 ipcRenderer.on('command-noMsg', (event, obj) => {
   console.log('command-noMsg---监听主进程的回复:', obj.fn, obj.result);
   if (obj.fn === 'getAllBranch') {
-    const Branches = parseBranches(obj.result);
-    branchList.value = Branches.formatted;
-    nowBranch.value = Branches.current;
+    const branches = parseBranches(obj.result);
+    branchList.value = branches.formatted;
+    nowBranch.value = branches.current as string;
   }
-  // 在这里处理接收到的对象数据
-  // Object.assign(fromSSH, obj)
 });
-// 处理分支信息的函数
-const parseBranches = (branchOutput) => {
+
+const parseBranches = (branchOutput: string) => {
   const branches = branchOutput.split('\n').map(branch => branch.trim());
   const formatted = branches.map(branch => branch.replace(/^\* /, ''));
   const current = branches.find(branch => branch.startsWith('*'));
@@ -152,53 +140,49 @@ const parseBranches = (branchOutput) => {
 };
 
 const commands = computed(() => ({
-  openWinCmd: 'start cmd.exe',  // 打开windows命令行
-  getPackageJson: `type package.json | jq '.scripts'`, // 获取package.json中的脚本命令
-  getAllBranch: `cd ${formInline.file} && git branch -a`,  // 获取所有分支
-  gitPull:`cd ${formInline.file} && git pull`,
-  gitPush:`cd ${formInline.file} && git push`,
-  gitCommit:`cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`,
-  setNewUrl:`cd ${formInline.file} && git remote set-url origin ${formInline.url}`,
-  getTheUrl:`cd ${formInline.file} && git remote -v`,
-}))
-const executeShellCommand = (commandsKey,isMessage=false) => {
+  openWinCmd: 'start cmd.exe',
+  getPackageJson: `type package.json | jq '.scripts'`,
+  getAllBranch: `cd ${formInline.file} && git branch -a`,
+  gitPull: `cd ${formInline.file} && git pull`,
+  gitPush: `cd ${formInline.file} && git push`,
+  gitCommit: `cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`,
+  setNewUrl: `cd ${formInline.file} && git remote set-url origin ${formInline.url}`,
+  getTheUrl: `cd ${formInline.file} && git remote -v`,
+}));
+
+const executeShellCommand = (commandsKey: keyof typeof commands.value, isMessage = false) => {
   console.log('执行命令', commandsKey);
-  ipcRenderer.send('executeShellCommand', JSON.stringify({fn: commandsKey, command: commands.value[commandsKey],isMessage}));
-}
+  ipcRenderer.send('executeShellCommand', JSON.stringify({ fn: commandsKey, command: commands.value[commandsKey], isMessage }));
+};
+
 const SSHAct = () => {
-  console.log('执行远程')
+  console.log('执行远程');
   ipcRenderer.send('saveSSHCache', JSON.stringify(fromSSH));
   ipcRenderer.send('SSHAct', JSON.stringify(fromSSH));
-}
-const handleClose = (tag) => {
+};
+
+const handleClose = (tag: FormInline) => {
   formList.value.splice(formList.value.indexOf(tag), 1);
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
-}
+};
 
-// 传入两个对象，如果第一个对象存在的属性，第二个对象中的属性全部相等，则返回false，反之返回true
-const deepEqual = (obj1, obj2) => {
-  const keys1 = Object.keys(obj1);
+const deepEqual = (obj1: Partial<FormInline>, obj2: Partial<FormInline>) => {
+  const keys1 = Object.keys(obj1) as (keyof FormInline)[];
   for (let key of keys1) {
-    const val1 = obj1[key];
-    const val2 = obj2[key];
-    // 若不相等则返回true，可以存入
-    if (val1 !== val2){
+    if (obj1[key] !== obj2[key]) {
       return true;
     }
   }
   return false;
 };
 
-
-
 const saveToCache = () => {
-  console.log('formList',formList.value)
-  // 向主进程发送保存对象的消息
+  console.log('formList', formList.value);
   for (let item of formList.value) {
     if (item.name === formInline.name) {
-      if (deepEqual(item,formInline)) {
-        let pushIndex = formList.value.indexOf(item);
-        formList.value[pushIndex] = formInline;
+      if (deepEqual(item, formInline)) {
+        const pushIndex = formList.value.indexOf(item);
+        formList.value[pushIndex] = { ...formInline };
         ipcRenderer.send('save-object', JSON.stringify(formList.value));
         ElMessage.success('更新缓存成功');
         getCache();
@@ -208,39 +192,37 @@ const saveToCache = () => {
       return;
     }
   }
-  formList.value.push(deepClone(formInline));
-
+  formList.value.push({ ...formInline });
   ipcRenderer.send('save-object', JSON.stringify(formList.value));
   getCache();
-}
+};
+
 const restCache = () => {
   formList.value = [];
   ElMessage.success('已清空缓存');
   ipcRenderer.send('save-object', JSON.stringify([]));
-}
-const deepClone = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
-}
+};
+
 const getCache = () => {
-  // 向主进程发送获取对象的消息
   ipcRenderer.send('get-object');
-}
+};
+
 const getSSHCache = () => {
-  // 向主进程发送获取对象的消息
   ipcRenderer.send('getSSHCache');
-}
-const setInfo = (index) => {
+};
+
+const setInfo = (index: number) => {
   checkedIndex.value = index;
-  console.log('formList.value[index]', index, formList.value[index])
-  // Object.assign(formInline, formList.value[index]);
+  console.log('formList.value[index]', index, formList.value[index]);
   for (let key in formList.value[index]) {
-    formInline[key] = formList.value[index][key];
+      (formInline as any)[key] = (formList.value[index] as any)[key];
   }
-}
+};
+
 onMounted(() => {
   getCache();
   getSSHCache();
-})
+});
 </script>
 
 <style>
@@ -255,6 +237,6 @@ onMounted(() => {
 .tagChecked {
   background: #79bbff;
   color: white;
-  box-shadow: 0 0 10px 5px white; /* 添加白色阴影 */
+  box-shadow: 0 0 10px 5px white;
 }
 </style>

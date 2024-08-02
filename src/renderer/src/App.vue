@@ -3,7 +3,7 @@ import Versions from './components/Versions.vue'
 </script>
 
 <template>
-  <router-view></router-view>
+  <RouterView />
 </template>
 
 <style lang="less">

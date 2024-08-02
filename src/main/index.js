@@ -1,5 +1,6 @@
 import {app, BrowserWindow, shell} from 'electron'
-import {join} from 'path'
+import * as path from "path";
+
 import {electronApp, is, optimizer} from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import {
@@ -13,7 +14,6 @@ import {
 // import {gitCommit, gitPull} from "./handlers/ipcMain";
 const {exec} = require('child_process');
 const fs = require('fs');
-const path = require('path');
 
 function createWindow() {
   // Create the browser window.
@@ -27,7 +27,7 @@ function createWindow() {
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
-      preload: join(__dirname, '../preload/index.js'),
+      preload: path.join(__dirname, '../preload/index.js'),
       sandbox: false
     }
   })
@@ -45,7 +45,7 @@ function createWindow() {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 }
 
@@ -56,9 +56,9 @@ app.whenReady().then(() => {
 // 注册 IPC 监听器
   getLocalStorage();
   saveObjectToCache();
-  SSHAct();
   getLocalStorageSSH();
   saveSSHToCache();
+  SSHAct();
   executeShellCommand();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
