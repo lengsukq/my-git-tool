@@ -8,8 +8,10 @@ const {Client} = require('ssh2');
 // 执行Shell命令并返回结果
 export function executeShellCommand() {
   ipcMain.on('executeShellCommand', (event, arg) => {
-    console.log('executeShellCommand', arg);
-    let commandInfo = JSON.parse(arg)
+    let commandInfo = arg
+    commandInfo.command = commandInfo.command.replace(/\n/g, '');
+    console.log('executeShellCommand', commandInfo);
+
     // command = {fn:xx,command:xx,isMessage:xx}
     // 在这里可以执行相应的操作，并向渲染进程发送回复
     // 执行Shell命令

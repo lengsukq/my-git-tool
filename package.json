@@ -50,6 +50,7 @@
     "less": "^4.2.0",
     "prettier": "^3.0.2",
     "vite": "^5.3.5",
+    "vite-plugin-optimizer": "^1.4.3",
     "vue": "^3.3.4"
   }
 }

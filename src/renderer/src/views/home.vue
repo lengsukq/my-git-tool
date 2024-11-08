@@ -59,6 +59,17 @@
           <el-option v-for="item in branchList" :key="item" :label="item" :value="item"/>
         </el-select>
       </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="executeShellCommand('getRecentGitLogs')">获取近一周提交日志</el-button>
+      </el-form-item>
+      <!-- 新增 Kimi 官网和 Deepseek 官网的按钮 -->
+      <el-form-item>
+        <el-button type="primary" @click="handleRedirectAndCopy('https://www.kimi.com')">跳转到 Kimi 官网</el-button>
+        <el-button type="primary" @click="handleRedirectAndCopy('https://chat.deepseek.com')">跳转到 Deepseek 官网</el-button>
+      </el-form-item>
+      <el-form-item label="">
+        <el-input type="textarea" v-model="recentGitLogs" rows="5" readonly />
+      </el-form-item>
     </el-form>
     <div class="flex flex-wrap gap-2 my-2">
       <el-tag v-for="(tag, index) in formList" :key="tag.name" class="mx-1" :class="{'tagChecked': checkedIndex === index}" @click="setInfo(index)" closable :disable-transitions="false" @close="handleClose(tag)">
@@ -69,10 +80,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import { ipcRenderer } from 'electron';
-
+import {computed, onMounted, reactive, ref} from 'vue';
+import {ElMessage} from 'element-plus';
+import {ipcRenderer, shell} from 'electron'; // 引入 Electron 的 shell 模块
 interface FormInline {
   name: string;
   file: string;
@@ -122,16 +132,47 @@ ipcRenderer.on('sendSSHCache', (event, obj) => {
   console.log('sendSSHCache---监听主进程的回复:', obj);
   Object.assign(fromSSH, obj);
 });
-
 ipcRenderer.on('command-noMsg', (event, obj) => {
   console.log('command-noMsg---监听主进程的回复:', obj.fn, obj.result);
   if (obj.fn === 'getAllBranch') {
     const branches = parseBranches(obj.result);
     branchList.value = branches.formatted;
     nowBranch.value = branches.current as string;
+  }else if(obj.fn === 'getRecentGitLogs') {
+    recentGitLogs.value = `**任务**：请根据以下 Git 提交日志，帮助总结出我这一周的工作内容，重点包括所完成的功能、修复的 bug、优化的部分，以及任何重要的进展或决策。
+
+**Git 提交日志**：
+${obj.result}
+
+**要求**：
+1. 简洁明了地总结每个主要任务。
+2. 按照时间顺序列出每项工作。
+3. 对于每个工作，提供简短的描述，包括所涉及的模块、功能、bug 修复或性能优化等。`; // 保存获取到的日志
+
+  } else if (obj.fn === 'getGitUserName') {
+    myGitName.value = obj.result; // 保存获取到的 Git 用户名
   }
 });
+const myGitName = ref<string>('');
+// 创建一个通用函数，负责复制和跳转
+const handleRedirectAndCopy = (url: string) => {
+  // 复制近一周的提交日志
+  if (recentGitLogs.value) {
+    navigator.clipboard.writeText(recentGitLogs.value)
+      .then(() => {
+        ElMessage.success('提交日志已复制到剪贴板');
+      })
+      .catch((err) => {
+        ElMessage.error('复制失败');
+        console.error('复制失败', err);
+      });
+  } else {
+    ElMessage.warning('没有可复制的提交日志');
+  }
 
+  // 使用 Electron 的 shell 模块打开外部链接
+  shell.openExternal(url);
+};
 const parseBranches = (branchOutput: string) => {
   const branches = branchOutput.split('\n').map(branch => branch.trim());
   const formatted = branches.map(branch => branch.replace(/^\* /, ''));
@@ -148,11 +189,36 @@ const commands = computed(() => ({
   gitCommit: `cd ${formInline.file} && git add . && git commit -m ${formInline.text} && git push`,
   setNewUrl: `cd ${formInline.file} && git remote set-url origin ${formInline.url}`,
   getTheUrl: `cd ${formInline.file} && git remote -v`,
+  // 获取 Git 用户名
+  getGitUserName: `cd ${formInline.file} && git config user.name`,
+  // 新增命令：获取近一周提交日志
+  getRecentGitLogs: `cd ${formInline.file} && git log --since="1 week ago" --author=${myGitName.value} --no-merges --pretty=format:"%s"`
 }));
-
+const recentGitLogs = ref<string>(''); // 用于存储获取的 Git 提交日志
+// 修改 executeShellCommand 方法，添加逻辑来处理 Git 日志输出
 const executeShellCommand = (commandsKey: keyof typeof commands.value, isMessage = false) => {
+  // 检查 formInline.file 是否为空
+  if (!formInline.file) {
+    ElMessage.error('请先填写本地目录路径！');
+    return; // 如果为空，终止命令执行
+  }
   console.log('执行命令', commandsKey);
-  ipcRenderer.send('executeShellCommand', JSON.stringify({ fn: commandsKey, command: commands.value[commandsKey], isMessage }));
+  ipcRenderer.send('executeShellCommand', ({
+    fn: commandsKey,
+    command: commands.value[commandsKey],
+    isMessage,
+  }));
+
+  // 监听执行结果并保存日志
+  if (commandsKey === 'getRecentGitLogs') {
+    ipcRenderer.once('command-result', (event, arg) => {
+      if (arg.result) {
+        recentGitLogs.value = arg.result; // 保存获取到的日志
+      } else {
+        ElMessage.error('获取提交日志失败');
+      }
+    });
+  }
 };
 
 const SSHAct = () => {
@@ -217,6 +283,7 @@ const setInfo = (index: number) => {
   for (let key in formList.value[index]) {
       (formInline as any)[key] = (formList.value[index] as any)[key];
   }
+  executeShellCommand('getGitUserName');
 };
 
 onMounted(() => {

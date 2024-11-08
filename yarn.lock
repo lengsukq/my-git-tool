@@ -3235,6 +3235,11 @@ vite-plugin-electron-renderer@^0.14.5:
   resolved "https://registry.npmjs.org/vite-plugin-electron-renderer/-/vite-plugin-electron-renderer-0.14.5.tgz#2ac36f31773cb23a09353fabb6fb788bdad94f50"
   integrity sha512-EQ7ORuPp8vFPCqfuGnVo7d36fXS0IFH4/RUlKb1drseix3TQEPcgwEuFADdXBxRgqMp70njz/1m0kdf5lEsm8w==
 
+vite-plugin-optimizer@^1.4.3:
+  version "1.4.3"
+  resolved "https://registry.npmjs.org/vite-plugin-optimizer/-/vite-plugin-optimizer-1.4.3.tgz#0a44c40676c7f76f795401c4c92841876bd0ff61"
+  integrity sha512-m1AFakemDxSNIwxsTYykBFuQxkKJLI8207RNAg33N5km2aE29cP+Jt41xbfdrALOU2VKYWGFlBz64GMbIser4A==
+
 vite@^5.3.5:
   version "5.3.5"
   resolved "https://registry.npmjs.org/vite/-/vite-5.3.5.tgz#b847f846fb2b6cb6f6f4ed50a830186138cb83d8"
