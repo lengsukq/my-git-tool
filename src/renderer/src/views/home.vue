@@ -64,8 +64,8 @@
       </el-form-item>
       <!-- 新增 Kimi 官网和 Deepseek 官网的按钮 -->
       <el-form-item>
-        <el-button type="primary" @click="handleRedirectAndCopy('https://www.kimi.com')">跳转到 Kimi 官网</el-button>
-        <el-button type="primary" @click="handleRedirectAndCopy('https://chat.deepseek.com')">跳转到 Deepseek 官网</el-button>
+        <el-button type="primary" @click="handleRedirectAndCopy('https://kimi.moonshot.cn')">Kimi</el-button>
+        <el-button type="primary" @click="handleRedirectAndCopy('https://chat.deepseek.com')">Deepseek</el-button>
       </el-form-item>
       <el-form-item label="">
         <el-input type="textarea" v-model="recentGitLogs" rows="5" readonly />
@@ -170,8 +170,10 @@ const handleRedirectAndCopy = (url: string) => {
     ElMessage.warning('没有可复制的提交日志');
   }
 
-  // 使用 Electron 的 shell 模块打开外部链接
-  shell.openExternal(url);
+  setTimeout(() => {
+    // 使用 Electron 的 shell 模块打开外部链接
+    shell.openExternal(url);
+  }, 2000);
 };
 const parseBranches = (branchOutput: string) => {
   const branches = branchOutput.split('\n').map(branch => branch.trim());
