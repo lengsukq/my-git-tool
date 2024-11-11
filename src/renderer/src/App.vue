@@ -1,5 +1,4 @@
 <script setup>
-import Versions from './components/Versions.vue'
 </script>
 
 <template>
@@ -7,4 +6,9 @@ import Versions from './components/Versions.vue'
 </template>
 
 <style lang="less">
+#app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>

@@ -11,15 +11,13 @@ import {
   SSHAct,
   executeShellCommand
 } from "./handlers/ipcMain";
-// import {gitCommit, gitPull} from "./handlers/ipcMain";
-const {exec} = require('child_process');
-const fs = require('fs');
+
 
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 500,
-    height: 670,
+    width: 1200,
+    height: 650,
     show: false,
     title:'myGitTool',
     autoHideMenuBar: true,
