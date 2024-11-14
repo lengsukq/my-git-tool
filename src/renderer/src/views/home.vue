@@ -242,20 +242,24 @@ const parseBranches = (branchOutput: string) => {
   const current = branches.find((branch) => branch.startsWith('*'));
   return { formatted, current: current ? current.slice(2) : null };
 };
-
+// 提取盘符的函数
+const getDriveLetter = (path: string): string => {
+  const match = path.match(/^([A-Za-z]):/);
+  return match ? match[1]+':' : '';
+};
 // 定义命令
 const commands = computed(() => ({
   openWinCmd: 'start cmd.exe',
   getPackageJson: `type package.json | jq '.scripts'`,
-  getAllBranch: `cd "${formInline.file}" && git branch -a`,
-  gitPull: `cd "${formInline.file}" && git pull`,
-  gitPush: `cd "${formInline.file}" && git push`,
-  gitCommit: `cd "${formInline.file}" && git add . && git commit -m "${formInline.text}" && git push`,
-  setNewUrl: `cd "${formInline.file}" && git remote set-url origin ${formInline.url}`,
-  getTheUrl: `cd "${formInline.file}" && git remote -v`,
-  getGitUserName: `cd "${formInline.file}" && git config user.name`,
-  getRecentGitLogs: `cd "${formInline.file}" && git log --since="1 week ago" --author=${myGitName.value} --no-merges --pretty=format:"%s"`,
-  switchBranch: (branch: string) => `cd "${formInline.file}" && git checkout ${branch}`,
+  getAllBranch: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git branch -a`,
+  gitPull: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git pull`,
+  gitPush: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git push`,
+  gitCommit: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git add . && git commit -m "${formInline.text}" && git push`,
+  setNewUrl: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git remote set-url origin ${formInline.url}`,
+  getTheUrl: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git remote -v`,
+  getGitUserName: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git config user.name`,
+  getRecentGitLogs: `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git log --since="1 week ago" --author=${myGitName.value} --no-merges --pretty=format:"%s"`,
+  switchBranch: (branch: string) => `${getDriveLetter(formInline.file)} && cd "${formInline.file}" && git checkout ${branch}`,
 }));
 
 // 执行命令
