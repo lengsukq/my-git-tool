@@ -48,12 +48,23 @@
           </el-form-item>
           <el-form-item label="远程命令">
             <el-switch v-model="formInline.isSSH" active-text="启用" inactive-text="禁用"></el-switch>
-            <el-button type="primary" class="mgl12" v-if="formInline.isSSH" @click="SSHAct">执行远程</el-button>
+            <el-button type="primary" class="mgl12" v-if="formInline.isSSH" @click="SSHAct" round>执行远程</el-button>
           </el-form-item>
           <!-- 模态框触发按钮 -->
-          <el-button type="text" @click="dialogVisible = true" v-if="formInline.isSSH">
+          <el-button type="text" @click="dialogVisible = true" v-if="formInline.isSSH" round>
             配置远程设置
           </el-button>
+          <el-form-item>
+            <el-tooltip content="存到本地" placement="top">
+              <el-button type="primary" :icon="Download" @click="saveToCache" circle ></el-button>
+            </el-tooltip>
+            <el-tooltip content="获取缓存" placement="top">
+              <el-button type="primary" :icon="Upload" @click="getCache" circle ></el-button>
+            </el-tooltip>
+            <el-tooltip content="清空缓存" placement="top">
+              <el-button type="danger" :icon="Delete" @click="restCache" circle ></el-button>
+            </el-tooltip>
+          </el-form-item>
         </el-form>
         <!-- SSH 配置模态框 -->
         <el-dialog
@@ -89,8 +100,8 @@
             </el-form-item>
           </el-form>
           <template #footer>
-            <el-button @click="resetSSHForm">取消</el-button>
-            <el-button type="primary" @click="saveAndCloseDialog">保存</el-button>
+            <el-button @click="resetSSHForm" round>取消</el-button>
+            <el-button type="primary" @click="saveAndCloseDialog" round>保存</el-button>
           </template>
         </el-dialog>
       </el-card>
@@ -102,36 +113,32 @@
         <el-form label-width="80px">
           <!-- 操作按钮组 -->
           <el-form-item label="Git操作">
-            <el-button type="primary" @click="executeShellCommand('gitCommit', true)">提交代码</el-button>
-            <el-button type="success" @click="executeShellCommand('gitPush', true)">推送代码</el-button>
-            <el-button type="" @click="executeShellCommand('gitPull', true)">更新代码</el-button>
+            <el-button type="primary" @click="executeShellCommand('gitCommit', true)" round>Git Commit</el-button>
+            <el-button type="success" @click="executeShellCommand('gitPush', true)" round>Git Push</el-button>
+            <el-button type="" @click="executeShellCommand('gitPull', true)" round>Git Pull</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="executeShellCommand('getTheUrl', true)">获取Git Url</el-button>
-            <el-button type="danger" @click="executeShellCommand('setNewUrl', true)">设置Git Url</el-button>
+            <el-button type="primary" @click="executeShellCommand('getTheUrl', true)" round>获取Git Url</el-button>
+            <el-button type="danger" @click="executeShellCommand('setNewUrl', true)" round>设置Git Url</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="executeShellCommand('openWinCmd')">Windows Shell</el-button>
-<!--            <el-button type="primary" @click="executeShellCommand('getPackageJson')">获取项目命令</el-button>-->
-            <el-button type="primary" @click="executeShellCommand('getAllBranch')">获取分支</el-button>
-            <el-button type="danger" class="mgl12" @click="switchBranch">切换分支</el-button>
+            <el-button type="primary" @click="executeShellCommand('openWinCmd')" round>Windows Shell</el-button>
+<!--            <el-button type="primary" @click="executeShellCommand('getPackageJson')" round>获取项目命令</el-button>-->
+            <el-button type="primary" @click="executeShellCommand('getAllBranch')" round>获取分支</el-button>
+            <el-button type="danger" class="mgl12" @click="switchBranch" round>切换分支</el-button>
           </el-form-item>
           <el-form-item label="当前分支">
             <el-select v-model="selectedBranch" placeholder="请选择当前分支" filterable>
               <el-option v-for="item in branchList" :key="item" :label="item" :value="item" />
             </el-select>
           </el-form-item>
-          <el-form-item label="项目标签">
-            <el-button type="primary" @click="saveToCache">存到本地</el-button>
-            <el-button type="primary" @click="getCache">获取缓存</el-button>
-            <el-button type="danger" @click="restCache">清空缓存</el-button>
-          </el-form-item>
+
           <el-form-item>
-            <el-button type="primary" @click="executeShellCommand('getRecentGitLogs')">获取近一周提交日志</el-button>
+            <el-button type="primary" @click="executeShellCommand('getRecentGitLogs')" round>获取近一周提交日志</el-button>
           </el-form-item>
           <el-form-item label="快速访问">
-            <el-button type="primary" @click="handleRedirectAndCopy('https://kimi.moonshot.cn')">Kimi</el-button>
-            <el-button type="primary" @click="handleRedirectAndCopy('https://chat.deepseek.com')">Deepseek</el-button>
+            <el-button type="" @click="handleRedirectAndCopy('https://kimi.moonshot.cn')" round>Kimi</el-button>
+            <el-button type="" @click="handleRedirectAndCopy('https://chat.deepseek.com')" round>Deepseek</el-button>
           </el-form-item>
           <el-form-item label="提交日志">
             <el-input type="textarea" v-model="recentGitLogs" rows="5" readonly />
@@ -145,6 +152,11 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  Download,
+  Delete,
+  Upload
+} from '@element-plus/icons-vue'
 import { ipcRenderer, shell } from 'electron'; // 引入 Electron 的 shell 模块
 
 interface FormInline {
