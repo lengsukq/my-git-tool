@@ -5,17 +5,27 @@
       <!-- 表单部分 -->
       <el-card class="box-card" style="flex: 1 1 auto; overflow-y: auto;">
         <template #header>
-          <el-tag
-            v-for="(tag, index) in formList"
-            :key="tag.name"
-            :class="{ tagChecked: checkedIndex === index }"
-            @click="setInfo(index)"
-            closable
-            :disable-transitions="false"
-            @close="handleClose(tag)"
+          <el-select
+            v-model="selectedTags"
+            filterable
+            placeholder="请选择项目"
+            @change="setInfo"
           >
-            {{ tag.name }}
-          </el-tag>
+            <el-option
+              v-for="(tag, index) in formList"
+              :key="tag.name"
+              :label="tag.name"
+              :value="index"
+            >
+              <el-tag
+                :closable="true"
+                :disable-transitions="false"
+                @close="handleClose(tag)"
+              >
+                {{ tag.name }}
+              </el-tag>
+            </el-option>
+          </el-select>
         </template>
         <el-form :model="formInline" label-width="100px">
           <el-form-item label="项目别名">
@@ -91,30 +101,30 @@
       <el-card class="box-card">
         <el-form label-width="80px">
           <!-- 操作按钮组 -->
-          <el-form-item label="操作">
+          <el-form-item label="Git操作">
             <el-button type="primary" @click="executeShellCommand('gitCommit', true)">提交代码</el-button>
             <el-button type="success" @click="executeShellCommand('gitPush', true)">推送代码</el-button>
-            <el-button type="warning" @click="executeShellCommand('gitPull', true)">更新代码</el-button>
+            <el-button type="" @click="executeShellCommand('gitPull', true)">更新代码</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="executeShellCommand('setNewUrl', true)">更新仓库地址</el-button>
-            <el-button type="primary" @click="executeShellCommand('getTheUrl', true)">获取仓库地址</el-button>
+            <el-button type="primary" @click="executeShellCommand('getTheUrl', true)">获取Git Url</el-button>
+            <el-button type="danger" @click="executeShellCommand('setNewUrl', true)">设置Git Url</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="saveToCache">存到缓存</el-button>
-            <el-button type="primary" @click="getCache">获取缓存</el-button>
-            <el-button type="danger" @click="restCache">清空缓存</el-button>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="executeShellCommand('openWinCmd')">打开 Windows 命令行</el-button>
-            <el-button type="primary" @click="executeShellCommand('getPackageJson')">获取项目命令</el-button>
+            <el-button type="primary" @click="executeShellCommand('openWinCmd')">Windows Shell</el-button>
+<!--            <el-button type="primary" @click="executeShellCommand('getPackageJson')">获取项目命令</el-button>-->
             <el-button type="primary" @click="executeShellCommand('getAllBranch')">获取分支</el-button>
-            <el-button type="primary" class="mgl12" @click="switchBranch">切换分支</el-button>
+            <el-button type="danger" class="mgl12" @click="switchBranch">切换分支</el-button>
           </el-form-item>
           <el-form-item label="当前分支">
             <el-select v-model="selectedBranch" placeholder="请选择当前分支" filterable>
               <el-option v-for="item in branchList" :key="item" :label="item" :value="item" />
             </el-select>
+          </el-form-item>
+          <el-form-item label="项目标签">
+            <el-button type="primary" @click="saveToCache">存到本地</el-button>
+            <el-button type="primary" @click="getCache">获取缓存</el-button>
+            <el-button type="danger" @click="restCache">清空缓存</el-button>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="executeShellCommand('getRecentGitLogs')">获取近一周提交日志</el-button>
@@ -134,7 +144,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { ipcRenderer, shell } from 'electron'; // 引入 Electron 的 shell 模块
 
 interface FormInline {
@@ -232,7 +242,7 @@ const handleRedirectAndCopy = (url: string) => {
 
   setTimeout(() => {
     shell.openExternal(url);
-  }, 2000);
+  }, 800);
 };
 
 // 解析分支信息
@@ -278,7 +288,7 @@ const executeShellCommand = (
   if (commandsKey === 'switchBranch' && branchToSwitch) {
     commandToExecute = commands.value.switchBranch(branchToSwitch);
   } else {
-    commandToExecute = commands.value[commandsKey];
+    commandToExecute = commands.value[commandsKey] as string;
   }
 
   // 显示加载状态（可选）
@@ -341,7 +351,7 @@ const SSHAct = () => {
   ipcRenderer.send('saveSSHCache', JSON.stringify(fromSSH));
   ipcRenderer.send('SSHAct', JSON.stringify(fromSSH));
 };
-
+const selectedTags = ref<string[]>([]);
 // 关闭标签
 const handleClose = (tag: FormInline) => {
   formList.value.splice(formList.value.indexOf(tag), 1);
@@ -457,13 +467,6 @@ const getCurrentBranch = async (): Promise<string> => {
 // 关闭模态框
 const resetSSHForm = () => {
   dialogVisible.value = false;
-  // 重置 SSH 表单内容（可选）
-  // Object.assign(fromSSH, {
-  //   sshUrl: '',
-  //   sshName: '',
-  //   sshPassword: '',
-  //   sshShell: '',
-  // });
 };
 
 // 保存并关闭模态框
@@ -492,6 +495,9 @@ onMounted(() => {
 /* 辅助样式 */
 .mgl12 {
   margin-left: 12px;
+}
+.mr-2{
+  margin-right: 2px;
 }
 
 </style>
