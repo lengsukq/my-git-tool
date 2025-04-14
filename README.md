@@ -1,6 +1,7 @@
 # my-git-tool
 
-![img.png](readmeImg/img.png)
+![image](https://github.com/user-attachments/assets/f604e95d-b2c8-41a5-a1c9-061afd9f3bcf)
+
 
 ## Recommended IDE Setup
 
